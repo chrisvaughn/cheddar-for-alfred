@@ -2,6 +2,7 @@
 import requests
 import json
 from array import *
+import gntp.notifier
 
 
 
@@ -14,8 +15,8 @@ def main():
 		a.append(list['id'])
 
 
-	"""payload2 = {'access_token': 'c58e04371525420c79fd6df8ef4677ec', 'task[text]': 'Buy Milk'}
-	s = requests.post('https://api.cheddarapp.com/v1/lists/3960/tasks', params=payload2)"""
+	#payload2 = {'access_token': 'c58e04371525420c79fd6df8ef4677ec', 'task[text]': 'Buy Milk'}
+	#s = requests.post('https://api.cheddarapp.com/v1/lists/3960/tasks', params=payload2)
 
 
 	q = requests.get('https://api.cheddarapp.com/v1/lists/3960/tasks', params=payload)
