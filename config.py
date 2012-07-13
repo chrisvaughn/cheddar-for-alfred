@@ -1,5 +1,0 @@
-CLIENT_ID = '753481760216.apps.googleusercontent.com'
-CLIENT_SECRET = 'i5bF8eFOUQF4VK6XPSrZi8t6'
-SCOPE = 'https://www.googleapis.com/auth/urlshortener'
-AUTH_URL = 'https://accounts.google.com/o/oauth2/auth'
-TOKEN_URL = 'https://accounts.google.com/o/oauth2/token'
