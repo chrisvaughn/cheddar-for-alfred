@@ -1,4 +1,5 @@
 
+import sys
 import webbrowser
 import uuid
 import urllib
@@ -7,12 +8,20 @@ import requests
 import pickle
 #import gntp.notifier
 
+import dl
+
 CLIENT_ID = '672fa96c85fa2036cf12bdb1f21efce1'
 AUTH_URL = 'https://api.cheddarapp.com/oauth/authorize'
 AUTH_INTERIM_URL = 'https://cheddar-for-alfred.appspot.com/get_access'
 
 
-def main():
+def main(args):
+    if len(args) == 0:
+        print 'expected 1 argument'
+        return
+
+    user_list = args[0]
+
     #get access token from file or got through auth process
     access_token = authorize()
 
@@ -23,8 +32,8 @@ def main():
     #fetch lists and filter out archived lists
     lists = fetch_lists(access_token)
 
-    print lists
-
+    list = guess_the_list(lists, user_list)
+    print list['title']
 
     #payload2 = {'access_token': 'c58e04371525420c79fd6df8ef4677ec', 'task[text]': 'Buy Milk'}
     #s = requests.post('https://api.cheddarapp.com/v1/lists/3960/tasks', params=payload2)
@@ -45,6 +54,28 @@ def fetch_lists(access_token):
     lists = r.json
     unloaded_lists = [{'id': x['id'], 'title': x['title']} for x in lists if not x['archived_at']]
     return unloaded_lists
+
+
+def guess_the_list(lists, user_list):
+    best_choice = {'dm': 1000}
+    for list in lists:
+        distances = []
+        print list
+        for l in list['title'].lower().split(' '):
+            distance = dl.dameraulevenshtein(l, user_list.lower())
+            distances.append(distance)
+            #print l
+            #print distance
+        average = float(sum(distances)) / len(distances)
+        distance = average
+        print 'distance: ' + str(distance)
+        print 'best match: ' + str(best_choice)
+        if distance < best_choice['dm']:
+            print 'new best match'
+            best_choice = list
+            best_choice['dm'] = distance
+        print ''
+    return best_choice
 
 
 def get_access_token():
@@ -110,4 +141,4 @@ def write_store(data):
         pass
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
