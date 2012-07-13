@@ -31,15 +31,15 @@ class OauthRedirectHandler(webapp2.RequestHandler):
             if result.status_code == 200:
                 response = json.loads(result.content)
                 memcache.set(uuid, json.dumps({'access_token': response['access_token']}))
-                self.response.out.write('Success! You may close this window')
+                self.response.out.write('Success! You may close this window.')
             else:
                 error = self.request.get('error')
                 memcache.set(uuid, json.dumps({'error': error}))
-                self.response.out.write('There was an error. Please try again')
+                self.response.out.write('There was an error. Please try again.')
         else:
             error = self.request.get('error')
             memcache.set(uuid, json.dumps({'error': error}))
-            self.response.out.write('There was an error. Please try again')
+            self.response.out.write('There was an error. Please try again.')
             return
 
 
