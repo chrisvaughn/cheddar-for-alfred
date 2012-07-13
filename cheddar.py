@@ -21,6 +21,7 @@ def main(args):
         return
 
     user_list = args[0]
+    task = args[1]
 
     #get access token from file or got through auth process
     access_token = authorize()
@@ -33,10 +34,8 @@ def main(args):
     lists = fetch_lists(access_token)
 
     list = guess_the_list(lists, user_list)
-    print list['title']
 
-    #payload2 = {'access_token': 'c58e04371525420c79fd6df8ef4677ec', 'task[text]': 'Buy Milk'}
-    #s = requests.post('https://api.cheddarapp.com/v1/lists/3960/tasks', params=payload2)
+    print create_task(access_token, list, task)
 
     #payload = {'access_token': access_token}
     #q = requests.get('https://api.cheddarapp.com/v1/lists/2024/tasks', params=payload)
@@ -76,6 +75,20 @@ def guess_the_list(lists, user_list):
             best_choice['dm'] = distance
         print ''
     return best_choice
+
+
+def create_task(access_token, list, task):
+    payload = {
+        'access_token': access_token,
+        'task[text]': task
+    }
+    url = 'https://api.cheddarapp.com/v1/lists/%s/tasks' % list['id']
+    r = requests.post(url, params=payload)
+    print r.status_code
+    if r.status_code == 201:
+        return r.json
+    else:
+        return False
 
 
 def get_access_token():
