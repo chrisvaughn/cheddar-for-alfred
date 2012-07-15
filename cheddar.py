@@ -10,7 +10,7 @@ import pickle
 
 import dl
 
-CLIENT_ID = '672fa96c85fa2036cf12bdb1f21efce1'
+CLIENT_ID = 'YOUR_CLIENT_ID'
 AUTH_URL = 'https://api.cheddarapp.com/oauth/authorize'
 AUTH_INTERIM_URL = 'https://cheddar-for-alfred.appspot.com/get_access'
 
