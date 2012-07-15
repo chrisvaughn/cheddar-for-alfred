@@ -3,11 +3,11 @@ import json
 import urllib
 import base64
 
-from google.appengine.api import memcache
-from google.appengine.api import urlfetch
+from google.appengine.api import memcache, urlfetch
 
-CLIENT_ID = '672fa96c85fa2036cf12bdb1f21efce1'
-CLIENT_SECRET = 'a8760b23fdfacbcbe06feab9adb46a56'
+
+CLIENT_ID = 'YOUR_CLIENT_ID'
+CLIENT_SECRET = 'YOUR_CLIENT_SECRET'
 AUTHORIZE_URL = 'https://api.cheddarapp.com/oauth/authorize'
 TOKEN_URL = 'https://api.cheddarapp.com/oauth/token'
 
@@ -48,6 +48,9 @@ class GetAccessHandler(webapp2.RequestHandler):
         uuid = self.request.get('uuid')
         data = memcache.get(uuid)
         if data:
+            #don't keep the token around forever just to be safe
+            memcache.delete(uuid)
+
             self.response.headers["Content-Type"] = "application/json"
             self.response.out.write(data)
         else:
