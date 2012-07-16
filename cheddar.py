@@ -1,12 +1,12 @@
 
+import os
 import sys
-import webbrowser
 import uuid
 import urllib
 import time
 import requests
 import pickle
-#import gntp.notifier
+import re
 
 import dl
 
@@ -16,64 +16,77 @@ AUTH_INTERIM_URL = 'https://cheddar-for-alfred.appspot.com/get_access'
 
 
 def main(args):
+
     if len(args) == 0:
-        print 'expected 1 argument'
+        show_help()
         return
 
-    user_list = args[0]
-    task = args[1]
+    (cmd, user_list, task) = process_input(args[0])
 
-    #get access token from file or got through auth process
-    access_token = authorize()
+    if cmd == 'help':
+        show_help()
+    elif cmd == 'create_task':
+        #get access token from file or got through auth process
+        access_token = authorize()
 
-    if not access_token:
-        print 'Something is not right. Aborting'
-        return
+        if not access_token:
+            print 'Something is not right. Aborting.'
+            return
 
-    #fetch lists and filter out archived lists
-    lists = fetch_lists(access_token)
+        #fetch lists and filter out archived lists
+        lists = fetch_lists(access_token)
+        if lists:
+            list = guess_the_list(lists, user_list)
 
-    list = guess_the_list(lists, user_list)
+            task_response = create_task(access_token, list, task)
+            if task_response:
+                print "Task Created"
+            else:
+                print "Error. Could not create task."
+        else:
+            "Error. Please delete data.pkl file and try again."
+    else:
+        print 'Command unrecognized. Aborting.'
 
-    print create_task(access_token, list, task)
 
-    #payload = {'access_token': access_token}
-    #q = requests.get('https://api.cheddarapp.com/v1/lists/2024/tasks', params=payload)
-    #d = q.json
-    #b = []
-    #for list in d:
-    #    b.append(list['display_text'])
-    #for x in xrange(0, len(b)):
-    #    gntp.notifier.mini(b[x])
+def process_input(input_str):
+    cmd = user_list = task = ''
+    pattern = re.compile(r'''((?:[^\s"']|"[^"]*"|'[^']*')+)''')
+    inputs = pattern.split(input_str)[1::2]
+
+    if inputs[0] == 'help' and len(inputs) == 1:
+        cmd = 'help'
+    else:
+        cmd = 'create_task'
+        user_list = inputs[0].strip('"')
+        task = inputs[1].strip('"')
+    return (cmd, user_list, task)
 
 
 def fetch_lists(access_token):
     payload = {'access_token': access_token}
     r = requests.get('https://api.cheddarapp.com/v1/lists', params=payload)
-    lists = r.json
-    unloaded_lists = [{'id': x['id'], 'title': x['title']} for x in lists if not x['archived_at']]
-    return unloaded_lists
+    if r.status_code == 200:
+        lists = r.json
+        unloaded_lists = [{'id': x['id'], 'title': x['title']} for x in lists if not x['archived_at']]
+        return unloaded_lists
+    else:
+        return False
 
 
 def guess_the_list(lists, user_list):
     best_choice = {'dm': 1000}
     for list in lists:
         distances = []
-        print list
         for l in list['title'].lower().split(' '):
             distance = dl.dameraulevenshtein(l, user_list.lower())
             distances.append(distance)
-            #print l
-            #print distance
         average = float(sum(distances)) / len(distances)
         distance = average
-        print 'distance: ' + str(distance)
-        print 'best match: ' + str(best_choice)
+
         if distance < best_choice['dm']:
-            print 'new best match'
             best_choice = list
             best_choice['dm'] = distance
-        print ''
     return best_choice
 
 
@@ -84,7 +97,7 @@ def create_task(access_token, list, task):
     }
     url = 'https://api.cheddarapp.com/v1/lists/%s/tasks' % list['id']
     r = requests.post(url, params=payload)
-    print r.status_code
+
     if r.status_code == 201:
         return r.json
     else:
@@ -110,7 +123,7 @@ def authorize():
             'state': uuid_for_state
         }
         authorize_url = '%s?%s' % (AUTH_URL, urllib.urlencode(params))
-        webbrowser.open(authorize_url, new=1, autoraise=True)
+        os.system('open "%s"' % authorize_url)
 
         time.sleep(5)
 
@@ -131,10 +144,20 @@ def authorize():
                 #now that we fetched it let's store it
                 write_store(data)
         else:
-            print 'error getting token. giving up'
+            print 'Error getting token. Aborting'
             return False
 
     return data['access_token']
+
+
+def show_help():
+    print "Cheddar For Alfred Help"
+    print "help - display this help menu"
+    print ""
+    print "to create a task:"
+    print "list \"task you want to create in quotes\""
+    print "  list matching works well at matching if you"
+    print "  give it at least half of the name"
 
 
 def read_store():
