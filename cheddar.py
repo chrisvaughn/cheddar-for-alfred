@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 import os
 import sys
 import uuid
@@ -40,7 +40,7 @@ def main(args):
 
             task_response = create_task(access_token, list, task)
             if task_response:
-                print "Task Created"
+                print "Task Created in %s" % list['title']
             else:
                 print "Error. Could not create task."
         else:
