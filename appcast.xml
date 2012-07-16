@@ -1,6 +1,6 @@
 <?xml version=”1.0” encoding=”ISO-8859-1”?>
 <update>
 <version>1.0</version>
-<url>https://example.com/extensions/extension.alfredextension</url>
-<comments>This update contains many fixes!</comments>
+<url>https://github.com/chrisvaughn/cheddar-for-alfred/raw/master/Cheddar%20for%20Alfred.alfredextension</url>
+<comments>First release!</comments>
 </update>
