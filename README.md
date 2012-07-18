@@ -4,7 +4,7 @@ Cheddar-for-Alfred
 Cheddar extension for Alfred App
 
 ## Installing the Extension
-[Download extension file](https://github.com/downloads/chrisvaughn/cheddar-for-alfred/Cheddar%20For%20Alfred.alfredextension)
+[Download extension file](https://github.com/downloads/chrisvaughn/cheddar-for-alfred/CheddarForAlfred.alfredextension)
 
 Double-Click "Cheddar For Alfred.alfredextension" to install it
 
