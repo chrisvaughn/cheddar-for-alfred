@@ -27,22 +27,32 @@ def main(args):
 
     if cmd == 'help':
         show_help()
+        return
+
+    #get access token from file or got through auth process
+    access_token = authorize()
+    if not access_token:
+        print 'Something is not right. Aborting.'
+        return
+
+    cheddar_api = CheddarApi(access_token)
+    #fetch lists and filter out archived lists
+    lists = fetch_lists(cheddar_api)
+    if cmd == 'lists':
+        print 'My Lists'
+        print ''
+        for mlist in lists:
+            print mlist['title']
+    elif cmd == 'reset':
+        os.remove('data.pkl')
+        print 'CA has been reset'
     elif cmd == 'create_task':
-        #get access token from file or got through auth process
-        access_token = authorize()
-        if not access_token:
-            print 'Something is not right. Aborting.'
-            return
-
-        cheddar_api = CheddarApi(access_token)
-        #fetch lists and filter out archived lists
-        lists = fetch_lists(cheddar_api)
         if lists:
-            list = guess_the_list(lists, user_list)
+            mlist = guess_the_list(lists, user_list)
 
-            task_response = create_task(cheddar_api, list, task)
+            task_response = create_task(cheddar_api, mlist, task)
             if task_response:
-                print "Task Created in %s" % list['title']
+                print "Task Created in %s" % mlist['title']
             else:
                 print "Error. Could not create task."
         else:
@@ -58,10 +68,16 @@ def process_input(input_str):
 
     if inputs[0] == 'help' and len(inputs) == 1:
         cmd = 'help'
-    else:
+    elif inputs[0] == 'lists' and len(inputs) == 1:
+        cmd = 'lists'
+    elif inputs[0] == 'reset' and len(inputs) == 1:
+        cmd = 'reset'
+    elif len(inputs) > 1:
         cmd = 'create_task'
         user_list = inputs[0].strip('"')
         task = inputs[1].strip('"')
+    else:
+        cmd = 'help'
     return (cmd, user_list, task)
 
 
@@ -153,13 +169,17 @@ def authorize():
 
 
 def show_help():
-    print "Cheddar For Alfred Help"
-    print "help - display this help menu"
-    print ""
-    print "to create a task:"
+    print "Help"
+    print "========================================================"
+    print "To Create a Task:"
     print "list \"task you want to create in quotes\""
     print "  list matching works well at matching if you"
     print "  give it at least half of the name"
+    print ""
+    print "Commands:"
+    print "help - display this help menu"
+    print "lists - display all your lists"
+    print 'reset - remove stored data to reset CA to new install'
 
 
 def read_store():
