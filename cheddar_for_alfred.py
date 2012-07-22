@@ -4,15 +4,17 @@ import sys
 import uuid
 import urllib
 import time
-import requests
 import pickle
 import re
+import httplib
+import json
 
 import dl
+from cheddar_api import CheddarApi
 
 CLIENT_ID = 'YOUR_CLIENT_ID'
 AUTH_URL = 'https://api.cheddarapp.com/oauth/authorize'
-AUTH_INTERIM_URL = 'https://cheddar-for-alfred.appspot.com/get_access'
+AUTH_INTERIM_HOST = 'cheddar-for-alfred.appspot.com'
 
 
 def main(args):
@@ -28,17 +30,17 @@ def main(args):
     elif cmd == 'create_task':
         #get access token from file or got through auth process
         access_token = authorize()
-
         if not access_token:
             print 'Something is not right. Aborting.'
             return
 
+        cheddar_api = CheddarApi(access_token)
         #fetch lists and filter out archived lists
-        lists = fetch_lists(access_token)
+        lists = fetch_lists(cheddar_api)
         if lists:
             list = guess_the_list(lists, user_list)
 
-            task_response = create_task(access_token, list, task)
+            task_response = create_task(cheddar_api, list, task)
             if task_response:
                 print "Task Created in %s" % list['title']
             else:
@@ -63,9 +65,8 @@ def process_input(input_str):
     return (cmd, user_list, task)
 
 
-def fetch_lists(access_token):
-    payload = {'access_token': access_token}
-    r = requests.get('https://api.cheddarapp.com/v1/lists', params=payload)
+def fetch_lists(cheddar_api):
+    r = cheddar_api.lists()
     if r.status_code == 200:
         lists = r.json
         unloaded_lists = [{'id': x['id'], 'title': x['title']} for x in lists if not x['archived_at']]
@@ -76,28 +77,22 @@ def fetch_lists(access_token):
 
 def guess_the_list(lists, user_list):
     best_choice = {'dm': 1000}
-    for list in lists:
+    for mlist in lists:
         distances = []
-        for l in list['title'].lower().split(' '):
+        for l in mlist['title'].lower().split(' '):
             distance = dl.dameraulevenshtein(l, user_list.lower())
             distances.append(distance)
         average = float(sum(distances)) / len(distances)
         distance = average
 
         if distance < best_choice['dm']:
-            best_choice = list
+            best_choice = mlist
             best_choice['dm'] = distance
     return best_choice
 
 
-def create_task(access_token, list, task):
-    payload = {
-        'access_token': access_token,
-        'task[text]': task
-    }
-    url = 'https://api.cheddarapp.com/v1/lists/%s/tasks' % list['id']
-    r = requests.post(url, params=payload)
-
+def create_task(cheddar_api, list, task):
+    r = cheddar_api.create_task(list['id'], task)
     if r.status_code == 201:
         return r.json
     else:
@@ -128,17 +123,24 @@ def authorize():
         time.sleep(5)
 
         params = {'uuid': uuid_for_state}
-        url = '%s?%s' % (AUTH_INTERIM_URL, urllib.urlencode(params))
+        resource = '%s?%s' % ('/get_access', urllib.urlencode(params))
+
+        conn = httplib.HTTPSConnection(AUTH_INTERIM_HOST)
 
         count = 0
-        r = requests.get(url)
-        while count < 15 and r.status_code != 200:
+        conn.request("GET", resource)
+        r = conn.getresponse()
+        resp = r.read()
+
+        while count < 15 and r.status != 200:
             count += 1
             time.sleep(2)
-            r = requests.get(url)
+            conn.request("GET", resource)
+            r = conn.getresponse()
+            resp = r.read()
 
-        if r.status_code == 200:
-            resp = r.json
+        if r.status == 200:
+            resp = json.loads(resp)
             if 'access_token' in resp:
                 data['access_token'] = resp['access_token']
                 #now that we fetched it let's store it

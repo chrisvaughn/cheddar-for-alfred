@@ -1,4 +1,4 @@
-Cheddar-for-Alfred
+Cheddar for Alfred
 ==================
 
 Cheddar extension for Alfred App
@@ -9,7 +9,7 @@ Cheddar extension for Alfred App
 Double-Click "Cheddar For Alfred.alfredextension" to install it
 
 
-## Using Cheddar For Alfred (CA)
+## Using Cheddar for Alfred (CA)
 
 CA is setup to use the keyword 'ca' and uses Growl notifications for feedback.
 
