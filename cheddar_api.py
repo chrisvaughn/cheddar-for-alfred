@@ -3,7 +3,7 @@ import urllib
 import json
 
 
-class CheddarResponse():
+class Response():
     def __init__(self, status, body):
         self.status_code = status
         self.json = json.loads(body)
@@ -18,7 +18,7 @@ class CheddarApi():
     def lists(self):
         self.connection.request("GET", "/v1/lists", headers=self.headers)
         r = self.connection.getresponse()
-        return CheddarResponse(r.status, r.read())
+        return Response(r.status, r.read())
 
     def create_task(self, list_id, task):
         params = urllib.urlencode({'task[text]': task})
@@ -26,4 +26,4 @@ class CheddarApi():
                                 body=params,
                                 headers=self.headers)
         r = self.connection.getresponse()
-        return CheddarResponse(r.status, r.read())
+        return Response(r.status, r.read())

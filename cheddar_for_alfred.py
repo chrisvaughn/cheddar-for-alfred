@@ -56,7 +56,7 @@ def main(args):
             else:
                 print "Error. Could not create task."
         else:
-            "Error. Please delete data.pkl file and try again."
+            "Error. Please run 'ca reset'."
     else:
         print 'Command unrecognized. Aborting.'
 
