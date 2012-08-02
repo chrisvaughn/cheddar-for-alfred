@@ -7,7 +7,18 @@
 	<key>category</key>
 	<string>SCRIPTS</string>
 	<key>command</key>
-	<string>./cheddar_for_alfred.py "{query}"</string>
+	<string>#Help
+#========================================================
+#To Create a Task:
+#list "task you want to create in quotes"
+#  list matching works well at matching if you
+#  give it at least half of the name
+#
+#Commands:
+#help - display this help menu
+#lists - display all your lists
+#reset - remove stored data to reset CA to new install
+	./cheddar_for_alfred.py "{query}"</string>
 	<key>disabled</key>
 	<false/>
 	<key>escapequery</key>
